@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <string>
 #include <cstdlib>
@@ -27,12 +28,15 @@ void garisBiasa() {
 }
 
 void header(string judul) {
+
     int lebar = 62;
     int panjang = (int)judul.length();
+
     int kiri = (lebar - panjang) / 2;
     int kanan = lebar - panjang - kiri;
 
     garisAtas();
+
     cout << "|";
 
     for (int i = 0; i < kiri; i++)
@@ -64,6 +68,18 @@ void pause() {
     cout << "\n tekan [ enter ] untuk kembali yaa...";
     cin.ignore();
     cin.get();
+}
+
+string ubahKecil(string nama) {
+
+    for (size_t i = 0; i < nama.length(); i++) {
+
+        if (nama[i] >= 'A' && nama[i] <= 'Z') {
+            nama[i] = nama[i] + 32;
+        }
+    }
+
+    return nama;
 }
 
 bool login() {
@@ -111,16 +127,73 @@ bool login() {
     return false;
 }
 
-string ubahKecil(string nama) {
+void simpanFile() {
 
-    for (size_t i = 0; i < nama.length(); i++) {
+    ofstream file("data_menu.txt");
 
-        if (nama[i] >= 'A' && nama[i] <= 'Z') {
-            nama[i] = nama[i] + 32;
+    Menu *bantu = head;
+
+    while (bantu != NULL) {
+
+        file << bantu->kode << "|"
+             << bantu->nama << "|"
+             << bantu->harga << "|"
+             << bantu->stok << endl;
+
+        bantu = bantu->next;
+    }
+
+    file.close();
+}
+
+void loadFile() {
+
+    ifstream file("data_menu.txt");
+
+    if (!file.is_open()) {
+        return;
+    }
+
+    while (!file.eof()) {
+
+        Menu *baru = new Menu;
+
+        string kode, harga, stok;
+
+        getline(file, kode, '|');
+        getline(file, baru->nama, '|');
+        getline(file, harga, '|');
+        getline(file, stok);
+
+        if (kode == "" || baru->nama == "") {
+
+            delete baru;
+            break;
+        }
+
+        baru->kode = stoi(kode);
+        baru->harga = stoi(harga);
+        baru->stok = stoi(stok);
+
+        baru->next = NULL;
+
+        if (head == NULL) {
+
+            head = baru;
+
+        } else {
+
+            Menu *bantu = head;
+
+            while (bantu->next != NULL) {
+                bantu = bantu->next;
+            }
+
+            bantu->next = baru;
         }
     }
 
-    return nama;
+    file.close();
 }
 
 bool cekKode(int kode) {
@@ -214,6 +287,8 @@ void tambahMenu() {
         bantu->next = baru;
     }
 
+    simpanFile();
+
     pesanBerhasil("data menu berhasil ditambahkan.");
 }
 
@@ -254,6 +329,159 @@ void tampilMenu() {
     }
 
     garisBiasa();
+}
+
+void sortingASC() {
+
+    if (head == NULL) {
+        return;
+    }
+
+    bool tukar;
+    Menu *i;
+    Menu *batas = NULL;
+
+    do {
+
+        tukar = false;
+        i = head;
+
+        while (i->next != batas) {
+
+            if (ubahKecil(i->nama)
+                > ubahKecil(i->next->nama)) {
+
+                swap(i->kode, i->next->kode);
+                swap(i->nama, i->next->nama);
+                swap(i->harga, i->next->harga);
+                swap(i->stok, i->next->stok);
+
+                tukar = true;
+            }
+
+            i = i->next;
+        }
+
+        batas = i;
+
+    } while (tukar);
+
+    simpanFile();
+}
+
+void menuSorting() {
+
+    bersihLayar();
+
+    if (head == NULL) {
+
+        pesanInfo("data menu masih kosong.");
+
+        return;
+    }
+
+    sortingASC();
+
+    pesanBerhasil("data berhasil diurutkan dari A-Z.");
+
+    tampilMenu();
+}
+
+void binarySearch() {
+
+    bersihLayar();
+
+    if (head == NULL) {
+
+        pesanInfo("data menu masih kosong.");
+
+        return;
+    }
+
+    sortingASC();
+
+    int jumlah = 0;
+
+    Menu *bantu = head;
+
+    while (bantu != NULL) {
+
+        jumlah++;
+        bantu = bantu->next;
+    }
+
+    Menu data[100];
+
+    bantu = head;
+
+    int i = 0;
+
+    while (bantu != NULL) {
+
+        data[i].kode = bantu->kode;
+        data[i].nama = bantu->nama;
+        data[i].harga = bantu->harga;
+        data[i].stok = bantu->stok;
+
+        i++;
+        bantu = bantu->next;
+    }
+
+    string cari;
+
+    cin.ignore();
+
+    header("CARI MENU");
+
+    cout << "[ Cari Menu ] : ";
+    getline(cin, cari);
+
+    string cariKecil = ubahKecil(cari);
+
+    int kiri = 0;
+    int kanan = jumlah - 1;
+
+    bool ketemu = false;
+
+    while (kiri <= kanan) {
+
+        int tengah = (kiri + kanan) / 2;
+
+        string namaTengah =
+        ubahKecil(data[tengah].nama);
+
+        if (namaTengah == cariKecil) {
+
+            pesanBerhasil("menu ditemukan.");
+
+            cout << "[ Kode ] : "
+                 << data[tengah].kode << endl;
+
+            cout << "[ Nama ] : "
+                 << data[tengah].nama << endl;
+
+            cout << "[ Harga ] : Rp "
+                 << data[tengah].harga << endl;
+
+            cout << "[ Stok ] : "
+                 << data[tengah].stok << endl;
+
+            ketemu = true;
+            break;
+
+        } else if (namaTengah < cariKecil) {
+
+            kiri = tengah + 1;
+
+        } else {
+
+            kanan = tengah - 1;
+        }
+    }
+
+    if (!ketemu) {
+        pesanGagal("menu tidak ditemukan.");
+    }
 }
 
 void hapusMenu() {
@@ -305,6 +533,8 @@ void hapusMenu() {
 
     delete hapus;
 
+    simpanFile();
+
     pesanBerhasil("menu berhasil dihapus.");
 }
 
@@ -314,8 +544,10 @@ void tampilMenuUtama() {
 
     cout << "| [1] Tambah Menu                                             |\n";
     cout << "| [2] Tampilkan Menu                                          |\n";
-    cout << "| [3] Hapus Menu                                              |\n";
-    cout << "| [4] Keluar                                                  |\n";
+    cout << "| [3] Urutkan Menu A-Z                                        |\n";
+    cout << "| [4] Cari Menu                                               |\n";
+    cout << "| [5] Hapus Menu                                              |\n";
+    cout << "| [6] Keluar                                                  |\n";
 
     garisAtas();
 }
@@ -327,6 +559,8 @@ int main() {
     if (!login()) {
         return 0;
     }
+
+    loadFile();
 
     do {
 
@@ -350,11 +584,21 @@ int main() {
             break;
 
         case 3:
-            hapusMenu();
+            menuSorting();
             pause();
             break;
 
         case 4:
+            binarySearch();
+            pause();
+            break;
+
+        case 5:
+            hapusMenu();
+            pause();
+            break;
+
+        case 6:
             bersihLayar();
             cout << "Program selesai.\n";
             break;
@@ -364,7 +608,7 @@ int main() {
             pause();
         }
 
-    } while (pilihan != 4);
+    } while (pilihan != 6);
 
     return 0;
 }
