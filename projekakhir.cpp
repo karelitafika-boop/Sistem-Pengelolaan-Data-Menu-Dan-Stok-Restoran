@@ -13,7 +13,15 @@ struct Menu {
     Menu *next;
 };
 
+struct Riwayat {
+    string keterangan;
+    Riwayat *prev;
+    Riwayat *next;
+};
+
 Menu *head = NULL;
+Riwayat *awal = NULL;
+Riwayat *akhir = NULL;
 
 void bersihLayar() {
     system("cls");
@@ -28,27 +36,17 @@ void garisBiasa() {
 }
 
 void header(string judul) {
-
     int lebar = 62;
     int panjang = (int)judul.length();
-
     int kiri = (lebar - panjang) / 2;
     int kanan = lebar - panjang - kiri;
 
     garisAtas();
-
     cout << "|";
-
-    for (int i = 0; i < kiri; i++)
-        cout << " ";
-
+    for (int i = 0; i < kiri; i++) cout << " ";
     cout << judul;
-
-    for (int i = 0; i < kanan; i++)
-        cout << " ";
-
+    for (int i = 0; i < kanan; i++) cout << " ";
     cout << "|\n";
-
     garisAtas();
 }
 
@@ -70,53 +68,38 @@ void pause() {
     cin.get();
 }
 
-string ubahKecil(string nama) {
-
-    for (size_t i = 0; i < nama.length(); i++) {
-
-        if (nama[i] >= 'A' && nama[i] <= 'Z') {
-            nama[i] = nama[i] + 32;
+string ubahKecil(string teks) {
+    for (size_t i = 0; i < teks.length(); i++) {
+        if (teks[i] >= 'A' && teks[i] <= 'Z') {
+            teks[i] = teks[i] + 32;
         }
     }
-
-    return nama;
+    return teks;
 }
 
 bool login() {
-
     string username, password;
     int kesempatan = 3;
 
     while (kesempatan > 0) {
-
         bersihLayar();
-
         header("LOGIN ADMIN RESTORAN");
 
         cout << "[ haii username kamu apaa?     ] : ";
         cin >> username;
-
         cout << "[ kalau passwordnya apa hayo?  ] : ";
         cin >> password;
 
         garisBiasa();
 
         if (username == "admin" && password == "12345") {
-
-            pesanBerhasil("yeyyy login berhasil.");
-
+            pesanBerhasil("yeyyy login berhasil, selamat datang admin cantik.");
             pause();
-
             return true;
-
         } else {
-
             kesempatan--;
-
-            pesanGagal("username atau password salah.");
-
-            cout << "[ Sisa Kesempatan ] : "
-                 << kesempatan << endl;
+            pesanGagal("maaff, username atau password salah! coba lagi ya.");
+            cout << "[ Sisa Kesempatan ] : " << kesempatan << endl;
 
             if (kesempatan > 0) {
                 pause();
@@ -124,17 +107,16 @@ bool login() {
         }
     }
 
+    pesanGagal("yahh kesempatan login habis:( coba lain waktu ya!.");
     return false;
 }
 
 void simpanFile() {
-
     ofstream file("data_menu.txt");
 
     Menu *bantu = head;
 
     while (bantu != NULL) {
-
         file << bantu->kode << "|"
              << bantu->nama << "|"
              << bantu->harga << "|"
@@ -147,7 +129,6 @@ void simpanFile() {
 }
 
 void loadFile() {
-
     ifstream file("data_menu.txt");
 
     if (!file.is_open()) {
@@ -155,9 +136,7 @@ void loadFile() {
     }
 
     while (!file.eof()) {
-
         Menu *baru = new Menu;
-
         string kode, harga, stok;
 
         getline(file, kode, '|');
@@ -166,7 +145,6 @@ void loadFile() {
         getline(file, stok);
 
         if (kode == "" || baru->nama == "") {
-
             delete baru;
             break;
         }
@@ -174,15 +152,11 @@ void loadFile() {
         baru->kode = stoi(kode);
         baru->harga = stoi(harga);
         baru->stok = stoi(stok);
-
         baru->next = NULL;
 
         if (head == NULL) {
-
             head = baru;
-
         } else {
-
             Menu *bantu = head;
 
             while (bantu->next != NULL) {
@@ -197,11 +171,9 @@ void loadFile() {
 }
 
 bool cekKode(int kode) {
-
     Menu *bantu = head;
 
     while (bantu != NULL) {
-
         if (bantu->kode == kode) {
             return true;
         }
@@ -213,14 +185,10 @@ bool cekKode(int kode) {
 }
 
 bool cekNama(string nama) {
-
     Menu *bantu = head;
 
     while (bantu != NULL) {
-
-        if (ubahKecil(bantu->nama)
-            == ubahKecil(nama)) {
-
+        if (ubahKecil(bantu->nama) == ubahKecil(nama)) {
             return true;
         }
 
@@ -230,8 +198,23 @@ bool cekNama(string nama) {
     return false;
 }
 
-void tambahMenu() {
+void tambahRiwayat(string teks) {
+    Riwayat *baru = new Riwayat;
 
+    baru->keterangan = teks;
+    baru->prev = NULL;
+    baru->next = NULL;
+
+    if (awal == NULL) {
+        awal = akhir = baru;
+    } else {
+        akhir->next = baru;
+        baru->prev = akhir;
+        akhir = baru;
+    }
+}
+
+void tambahMenu() {
     bersihLayar();
 
     Menu *baru = new Menu;
@@ -242,11 +225,8 @@ void tambahMenu() {
     cin >> baru->kode;
 
     if (cekKode(baru->kode)) {
-
-        pesanGagal("kode menu sudah digunakan.");
-
+        pesanGagal("etss kode menu sudah digunakan.");
         delete baru;
-
         return;
     }
 
@@ -256,28 +236,22 @@ void tambahMenu() {
     getline(cin, baru->nama);
 
     if (cekNama(baru->nama)) {
-
-        pesanGagal("nama menu sudah ada.");
-
+        pesanGagal("Nama menu sudah ada.");
         delete baru;
-
         return;
     }
 
-    cout << "[ Harga ] : Rp ";
+    cout << "[ Harga     ] : Rp ";
     cin >> baru->harga;
 
-    cout << "[ Stok ] : ";
+    cout << "[ Stok      ] : ";
     cin >> baru->stok;
 
     baru->next = NULL;
 
     if (head == NULL) {
-
         head = baru;
-
     } else {
-
         Menu *bantu = head;
 
         while (bantu->next != NULL) {
@@ -288,18 +262,15 @@ void tambahMenu() {
     }
 
     simpanFile();
-
-    pesanBerhasil("data menu berhasil ditambahkan.");
+    garisBiasa();
+    pesanBerhasil("okeyyy! data menu berhasil ditambahkan.");
 }
 
 void tampilMenu() {
-
     bersihLayar();
 
     if (head == NULL) {
-
-        pesanInfo("data menu masih kosong.");
-
+        pesanInfo("Data menu masih kosong.");
         return;
     }
 
@@ -317,7 +288,6 @@ void tampilMenu() {
     Menu *bantu = head;
 
     while (bantu != NULL) {
-
         cout << "| " << left
              << setw(8) << bantu->kode
              << setw(25) << bantu->nama
@@ -332,7 +302,6 @@ void tampilMenu() {
 }
 
 void sortingASC() {
-
     if (head == NULL) {
         return;
     }
@@ -342,15 +311,11 @@ void sortingASC() {
     Menu *batas = NULL;
 
     do {
-
         tukar = false;
         i = head;
 
         while (i->next != batas) {
-
-            if (ubahKecil(i->nama)
-                > ubahKecil(i->next->nama)) {
-
+            if (ubahKecil(i->nama) > ubahKecil(i->next->nama)) {
                 swap(i->kode, i->next->kode);
                 swap(i->nama, i->next->nama);
                 swap(i->harga, i->next->harga);
@@ -370,42 +335,33 @@ void sortingASC() {
 }
 
 void menuSorting() {
-
     bersihLayar();
 
     if (head == NULL) {
-
-        pesanInfo("data menu masih kosong.");
-
+        pesanInfo("wehh data menu masih kosong, isi dulu yaa!");
         return;
     }
 
     sortingASC();
-
-    pesanBerhasil("data berhasil diurutkan dari A-Z.");
+    pesanBerhasil("okeyy, data berhasil diurutkan dari A-Z.");
 
     tampilMenu();
 }
 
 void binarySearch() {
-
     bersihLayar();
 
     if (head == NULL) {
-
-        pesanInfo("data menu masih kosong.");
-
+        pesanInfo("Data menu masih kosong.");
         return;
     }
 
     sortingASC();
 
     int jumlah = 0;
-
     Menu *bantu = head;
 
     while (bantu != NULL) {
-
         jumlah++;
         bantu = bantu->next;
     }
@@ -413,22 +369,20 @@ void binarySearch() {
     Menu data[100];
 
     bantu = head;
-
     int i = 0;
 
     while (bantu != NULL) {
-
         data[i].kode = bantu->kode;
         data[i].nama = bantu->nama;
         data[i].harga = bantu->harga;
         data[i].stok = bantu->stok;
+        data[i].next = NULL;
 
         i++;
         bantu = bantu->next;
     }
 
     string cari;
-
     cin.ignore();
 
     header("CARI MENU");
@@ -440,58 +394,93 @@ void binarySearch() {
 
     int kiri = 0;
     int kanan = jumlah - 1;
-
+    int tengah;
     bool ketemu = false;
 
     while (kiri <= kanan) {
+        tengah = (kiri + kanan) / 2;
 
-        int tengah = (kiri + kanan) / 2;
-
-        string namaTengah =
-        ubahKecil(data[tengah].nama);
+        string namaTengah = ubahKecil(data[tengah].nama);
 
         if (namaTengah == cariKecil) {
+            pesanBerhasil("yashhhyashh menu ditemukan!.");
+            garisBiasa();
 
-            pesanBerhasil("menu ditemukan.");
+            cout << "[ Kode  ] : " << data[tengah].kode << endl;
+            cout << "[ Nama  ] : " << data[tengah].nama << endl;
+            cout << "[ Harga ] : Rp " << data[tengah].harga << endl;
+            cout << "[ Stok  ] : " << data[tengah].stok << endl;
 
-            cout << "[ Kode ] : "
-                 << data[tengah].kode << endl;
-
-            cout << "[ Nama ] : "
-                 << data[tengah].nama << endl;
-
-            cout << "[ Harga ] : Rp "
-                 << data[tengah].harga << endl;
-
-            cout << "[ Stok ] : "
-                 << data[tengah].stok << endl;
-
+            garisBiasa();
             ketemu = true;
             break;
-
         } else if (namaTengah < cariKecil) {
-
             kiri = tengah + 1;
-
         } else {
-
             kanan = tengah - 1;
         }
     }
 
     if (!ketemu) {
-        pesanGagal("menu tidak ditemukan.");
+        pesanGagal("aduhh menu tidak ditemukan.");
     }
 }
 
-void hapusMenu() {
-
+void updateStok() {
     bersihLayar();
 
     if (head == NULL) {
+        pesanInfo("Data menu masih kosong.");
+        return;
+    }
 
-        pesanInfo("data menu masih kosong.");
+    string namaCari;
+    int stokBaru;
 
+    cin.ignore();
+
+    header("UPDATE STOK MENU");
+
+    cout << "[ Nama Menu ] : ";
+    getline(cin, namaCari);
+
+    Menu *bantu = head;
+
+    while (bantu != NULL) {
+        if (ubahKecil(bantu->nama) == ubahKecil(namaCari)) {
+            garisBiasa();
+
+            cout << "[ Kode Menu ] : " << bantu->kode << endl;
+            cout << "[ Nama Menu ] : " << bantu->nama << endl;
+            cout << "[ Stok Lama ] : " << bantu->stok << endl;
+            cout << "[ Stok Baru ] : ";
+            cin >> stokBaru;
+
+            string catatan = "Stok " + bantu->nama + " diubah dari " +
+                             to_string(bantu->stok) + " menjadi " +
+                             to_string(stokBaru);
+
+            bantu->stok = stokBaru;
+
+            tambahRiwayat(catatan);
+            simpanFile();
+
+            garisBiasa();
+            pesanBerhasil("stok menu berhasil diupdate yaa!.");
+            return;
+        }
+
+        bantu = bantu->next;
+    }
+
+    pesanGagal("Nama menu tidak ditemukan.");
+}
+
+void hapusMenu() {
+    bersihLayar();
+
+    if (head == NULL) {
+        pesanInfo("Data menu masih kosong.");
         return;
     }
 
@@ -507,53 +496,68 @@ void hapusMenu() {
     Menu *hapus = head;
     Menu *sebelum = NULL;
 
-    while (hapus != NULL &&
-           ubahKecil(hapus->nama)
-           != ubahKecil(namaCari)) {
-
+    while (hapus != NULL && ubahKecil(hapus->nama) != ubahKecil(namaCari)) {
         sebelum = hapus;
         hapus = hapus->next;
     }
 
     if (hapus == NULL) {
-
-        pesanGagal("nama menu tidak ditemukan.");
-
+        pesanGagal("yahh nama menu tidak ditemukan.");
         return;
     }
 
     if (sebelum == NULL) {
-
         head = head->next;
-
     } else {
-
         sebelum->next = hapus->next;
     }
 
     delete hapus;
-
     simpanFile();
 
-    pesanBerhasil("menu berhasil dihapus.");
+    pesanBerhasil("menu berhasil dihapus yaaa.");
+}
+
+void tampilRiwayat() {
+    bersihLayar();
+
+    if (awal == NULL) {
+        pesanInfo("riwayat stok masih kosong, update stok dulu yaa!");
+        return;
+    }
+
+    header("RIWAYAT PERUBAHAN STOK");
+
+    Riwayat *bantu = awal;
+    int no = 1;
+
+    while (bantu != NULL) {
+        cout << "[ " << setw(2) << no++ << " ] "
+             << bantu->keterangan << endl;
+
+        bantu = bantu->next;
+    }
+
+    garisBiasa();
 }
 
 void tampilMenuUtama() {
-
     header("SISTEM PENGELOLAAN MENU RESTORAN");
 
     cout << "| [1] Tambah Menu                                             |\n";
     cout << "| [2] Tampilkan Menu                                          |\n";
     cout << "| [3] Urutkan Menu A-Z                                        |\n";
     cout << "| [4] Cari Menu                                               |\n";
-    cout << "| [5] Hapus Menu                                              |\n";
-    cout << "| [6] Keluar                                                  |\n";
+    cout << "| [5] Update Stok                                             |\n";
+    cout << "| [6] Hapus Menu                                              |\n";
+    cout << "| [7] Riwayat Stok                                            |\n";
+    cout << "| [8] Keluar                                                  |\n";
 
     garisAtas();
 }
 
 int main() {
-
+	
     int pilihan;
 
     if (!login()) {
@@ -563,16 +567,14 @@ int main() {
     loadFile();
 
     do {
-
         bersihLayar();
 
         tampilMenuUtama();
 
-        cout << "[ Pilih Menu ] : ";
+        cout << "[ Pilih Menu (1-8)] : ";
         cin >> pilihan;
 
         switch (pilihan) {
-
         case 1:
             tambahMenu();
             pause();
@@ -594,21 +596,33 @@ int main() {
             break;
 
         case 5:
-            hapusMenu();
+            updateStok();
             pause();
             break;
 
         case 6:
+            hapusMenu();
+            pause();
+            break;
+
+        case 7:
+            tampilRiwayat();
+            pause();
+            break;
+
+        case 8:
             bersihLayar();
-            cout << "Program selesai.\n";
+            header("PROGRAM SELESAI");
+            cout << "TERIMAKASIHHH YAAAA, program ditutup! -by carelita and arsya.\n";
+            garisBiasa();
             break;
 
         default:
-            pesanGagal("pilihan tidak tersedia.");
+            pesanGagal("yahhh pilihan tidak tersedia.");
             pause();
         }
 
-    } while (pilihan != 6);
+    } while (pilihan != 8);
 
     return 0;
 }
